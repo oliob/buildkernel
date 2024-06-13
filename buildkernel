@@ -31,7 +31,7 @@ shopt -s nullglob
 # ********************** variables ********************* 
 PROGNAME="$(basename "${0}")"
 CONFFILE="/etc/${PROGNAME}.conf"
-VERSION="1.0.37"
+VERSION="1.1.0"
 ETCPROFILE="/etc/profile"
 DEFAULTEFIBOOTFILE="bootx64.efi"
 EFIBOOTFILE="${DEFAULTEFIBOOTFILE}"
@@ -127,7 +127,7 @@ DEFAULTINITSYSTEM="systemd"
 INITSYSTEM="${DEFAULTINITSYSTEM}"
 # following variable is conformed on installation by ebuild
 # (to reflect setting of "plymouth" USE flag)
-USE_PLYMOUTH=true
+USE_PLYMOUTH=false
 VERBOSITYFLAG=""
 ASKFLAG=""
 ALERTFLAG=""
@@ -291,7 +291,7 @@ extract_kernel_release_name() {
     # sign appended)
     # LINUXBUILDDIR must be defined and non-blank on entry
     NEWVERSION="linux-$(cd "${LINUXBUILDDIR}" && make -s kernelrelease)"
-    INITRAMFSNAME="$(echo $NEWVERSION | sed "s/linux/initramfs-genkernel-x86_64/")"
+    INITRAMFSNAME="$(echo $NEWVERSION | sed "s/linux/initramfs/").img"
     VMLINUZNAME="$(echo $NEWVERSION | sed "s/linux/vmlinuz/")"
 }
 check_gcc_config_and_reset_if_necessary() {
@@ -1660,6 +1660,7 @@ enter_build_directory() {
 copy_config_from_proc_if_necessary () {
     # LINUXBUILDDIR must be defined and non blank on entry
     TARGETCONFIG="${LINUXBUILDDIR}/.config"
+    TARGETCONFIGFILE=".config"
     if [ ! -s "${TARGETCONFIG}" ]; then
         if ((ARG_ASK==1)); then
             continue_yn "There is no .config file; use current (${CURRENTVERSION}) config"
@@ -1891,8 +1892,9 @@ create_initramfs_using_genkernel() {
     if ((DISABLE_LVM==0)); then
         GENKERNEL_OPTS+="--lvm "
     fi
-    GENKERNEL_OPTS+="--no-gpg --udev ${POSTCLEAR_FLAG} "
-    GENKERNEL_OPTS+="--kernel-config=\"${TARGETCONFIG}\" --busybox "
+    GENKERNEL_OPTS+="--no-gpg ${POSTCLEAR_FLAG} "
+    echo "current TARGETCONFIG: " ${TARGETCONFIG}
+    GENKERNEL_OPTS+="--kernel-config="${TARGETCONFIGFILE}" --busybox "
     GENKERNEL_OPTS+="--no-compress-initramfs "
     GENKERNEL_OPTS+="${ADDITIONALGENKERNELOPTS} ${PLYMOUTH_OPTS} initramfs"
     genkernel ${GENKERNEL_OPTS}
