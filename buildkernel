@@ -670,6 +670,7 @@ find_all_efi_system_partitions() {
     done
 }
 find_all_efi_boot_entries() {
+    set -x
     # overwrites the variables EBOOTIDS EBOOTNAMES EBOOTPATHS EBOOTUUIDS
     # and EBOOTISACTIVES, EBOOTORDER
     # and also HASWINBOOTLOADER and EBOOTIDTOINDEX
@@ -699,7 +700,7 @@ find_all_efi_boot_entries() {
         else
             NEXTISACTIVE="0"
         fi
-        local NEXTUUID=$(egrep -o 'HD\([^(]*\)' <<<"${NEXTLINE}" | egrep -o '[[:xdigit:]]{8}(\-[[:xdigit:]]{4}){3}\-[[:xdigit:]]{12}')
+        local NEXTUUID=$(egrep -o 'HD\([^(]*\)' <<<"${NEXTLINE}" | egrep -o '[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}')
         local NEXTPATH=$(egrep -o 'File\([^(]*\)' <<<"${NEXTLINE}")
         NEXTPATH="${NEXTPATH:5:-1}"
         local NEXTNAME="$(efibootmgr | grep "^${NEXTSIG}" | cut -c11-)"
@@ -729,6 +730,7 @@ find_all_efi_boot_entries() {
     # now extract the boot order, and save it into EBOOTORDER in ascending order
     EBOOTORDER=($(efibootmgr | grep '^BootOrder' | sed 's/BootOrder: //g;s/,/ /g'))
     EFIBOOTENTRIESSEARCHED=1
+    set +x
 }
 archive_current_config_variables() {
     local NEXTVAR
